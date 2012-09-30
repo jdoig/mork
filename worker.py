@@ -51,7 +51,7 @@ def enlist():
     return master_name
 
 def execute(job, name):
-    """ pick up the  """
+    """ mark job as in progress, processes and then delete the job """
     # 1: create 'in-progress' node under job
     try:
         zk.mark_job(job,name) # mark job as in progress
@@ -77,4 +77,4 @@ if __name__ == "__main__":
         zk.stop()
         work_receiver.close()
         context.term()
-        sys.exit(1)
+        sys.exit()
