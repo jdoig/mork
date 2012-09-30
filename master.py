@@ -10,7 +10,7 @@ zk_address = "127.0.0.1:2181" if len(sys.argv) < 4 else sys.argv[3]
 zk = ZkClient(zk_address, sys.argv[1])
 
 context = zmq.Context()
-master_send = context.socket(zmq.PUSH)
+message_client = context.socket(zmq.PUSH)
 name = ""
 
 
@@ -18,7 +18,7 @@ def register(address):
     """create an ephemeral node in ZooKeeper"""
 
     #set up 0MQ socket
-    master_send.bind("tcp://" + address)
+    message_client.bind("tcp://" + address)
     sleep(1) #Give tcp connection time to spin up
 
     name =  zk.create_master(address)
@@ -52,7 +52,7 @@ def on_new_job(zk_event):
         for job in zk.get_jobs():
             try:
                 if not zk.job_has_worker_assigned(job, on_worker_assigned):
-                    master_send.send(str(job))
+                    message_client.send(str(job))
             except NoNodeError:
                 print "dang, someone beat me to it!"
 
@@ -74,6 +74,6 @@ if __name__ == "__main__":
 
     finally:
         zk.stop()
-        master_send.close()
+        message_client.close()
         context.term()
         sys.exit()

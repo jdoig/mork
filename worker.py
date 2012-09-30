@@ -11,7 +11,7 @@ from zk_client import ZkClient
 zk_address = "127.0.0.1:2181" if len(sys.argv) < 3 else sys.argv[2]
 zk = ZkClient(zk_address, sys.argv[1])
 context = zmq.Context()
-work_receiver = context.socket(zmq.PULL)
+message_client = context.socket(zmq.PULL)
 name = ""
 
 def select_master():
@@ -46,7 +46,7 @@ def enlist():
     print master_name
 
     # 2: connect to master via 0MQ (zmq.PULL)
-    work_receiver.connect("tcp://" + master_data['listening_on'])
+    message_client.connect("tcp://" + master_data['listening_on'])
 
     return master_name
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     short_name = name.split('/')[-1]
     try:
         while True:
-            query = work_receiver.recv()
+            query = message_client.recv()
             execute(query, short_name)
 
     except (KeyboardInterrupt, SystemExit):
@@ -75,6 +75,6 @@ if __name__ == "__main__":
 
     finally:
         zk.stop()
-        work_receiver.close()
+        message_client.close()
         context.term()
         sys.exit()
