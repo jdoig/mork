@@ -25,23 +25,6 @@ def register(address):
     print name
     return name
 
-def on_worker_deleted(zk_event):
-    """
-     on worker deletion try and re-issue job in case the deletion was the result of a worker dying
-    """
-    type, state, path = zk_event
-    if type == EventType.DELETED:
-        on_new_job(None)
-
-def on_worker_assigned(zk_event):
-    """
-    when a worker is assigned to a job watch it and respond to it being deleted
-    """
-    type, state, path = zk_event
-    if type == EventType.CHILD:
-        worker = zk.get_children(path)[0]
-        zk.exists("{0}/{1}".format(path,worker), watch=on_worker_deleted)
-
 def on_new_job(zk_event):
     """
     watches for new jobs to be added to root
@@ -51,7 +34,7 @@ def on_new_job(zk_event):
     try:
         for job in zk.get_jobs():
             try:
-                if not zk.job_has_worker_assigned(job, on_worker_assigned):
+                if not zk.job_has_worker_assigned(job):
                     message_client.send(str(job))
             except NoNodeError:
                 print "dang, someone beat me to it!"
