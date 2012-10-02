@@ -13,17 +13,14 @@ context = zmq.Context()
 message_client = context.socket(zmq.PUSH)
 name = ""
 
-
 def register(address):
-    """create an ephemeral node in ZooKeeper"""
+    """create an ephemeral node in ZooKeeper & bind to 0MQ socket"""
 
     #set up 0MQ socket
     message_client.bind("tcp://" + address)
     sleep(1) #Give tcp connection time to spin up
 
-    name =  zk.create_master(address)
-    print name
-    return name
+    return zk.create_master(address)
 
 def on_new_job(zk_event):
     """
